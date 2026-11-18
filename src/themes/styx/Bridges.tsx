@@ -1,9 +1,9 @@
 // Ponts de marbre en arche entre le temple et chaque îlot occupé.
 import { useEffect, useMemo } from 'react';
 import * as THREE from 'three';
-import { STATUS_COLOR } from '../format';
+import { STATUS_COLOR } from '../../format';
+import type { Bridge } from '../../scene/layout';
 import { Fire } from './Fire';
-import type { Bridge } from './layout';
 import { MAT } from './materials';
 
 const blockGeo = new THREE.BoxGeometry(2.6, 0.45, 0.86);

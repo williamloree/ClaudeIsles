@@ -1,7 +1,8 @@
 // Îlot de basalte sortant du Styx, dallé de marbre, avec ses ruines.
 import { useMemo, type ReactNode } from 'react';
 import * as THREE from 'three';
-import type { Decor, IsletTemplate, Vec3 } from './islands';
+import type { Vec3 } from '../../scene/slots';
+import type { Decor, IsletTemplate } from './islands';
 import { MAT } from './materials';
 
 const flowerMat = new THREE.PointsMaterial({ color: 0xe9e2c8, size: 0.22, sizeAttenuation: true });

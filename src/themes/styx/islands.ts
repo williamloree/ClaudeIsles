@@ -1,9 +1,7 @@
-// Îlots prédéfinis sur le Styx : géométrie calculée une seule fois (graine fixe),
-// puis chaque agent ou tâche reçoit simplement un emplacement libre.
+// Îlots de basalte du Styx, un par emplacement : géométrie calculée une seule fois (graine fixe).
 import * as THREE from 'three';
+import { HUB_RADIUS, ISLAND_SLOTS, ISLET_RADIUS, ISLET_TOP, type Vec3 } from '../../scene/slots';
 import { fbm, rng } from './materials';
-
-export type Vec3 = [number, number, number];
 
 export type Decor =
   | { type: 'column'; pos: Vec3; angle: number; h: number }
@@ -34,7 +32,7 @@ export function buildIslet(seed: number, radius: number, withDecor = true): Isle
   rock.computeVertexNormals();
   rock.translate(0, -2.6, 0);
 
-  const top = 1.9 + 0.17;
+  const top = ISLET_TOP;
   // asphodèles, les fleurs pâles des Enfers, au bord de l'îlot
   const flowers = new Float32Array(70 * 3);
   for (let i = 0; i < 70; i++) {
@@ -70,35 +68,7 @@ export function buildIslet(seed: number, radius: number, withDecor = true): Isle
   return { radius, top, rock, flowers, decor };
 }
 
-export interface Slot {
-  pos: Vec3;
-  template: IsletTemplate;
-}
+/** Îlot de chaque emplacement (même ordre que `ISLAND_SLOTS`). */
+export const ISLET_TEMPLATES: IsletTemplate[] = ISLAND_SLOTS.map((_, i) => buildIslet(5 + i * 2.7, ISLET_RADIUS));
 
-// 16 emplacements sur deux anneaux. Les ponts de l'anneau extérieur passent entre
-// les îlots de l'anneau intérieur (décalage de 22,5°).
-export const ISLAND_SLOTS: Slot[] = Array.from({ length: 16 }, (_, i) => {
-  const inner = i < 8;
-  const k = inner ? i : i - 8;
-  const angle = (k / 8) * Math.PI * 2 + (inner ? Math.PI / 8 : 0);
-  const radius = inner ? 36 : 56;
-  return {
-    pos: [Math.cos(angle) * radius, 0, Math.sin(angle) * radius] as Vec3,
-    template: buildIslet(5 + i * 2.7, 7),
-  };
-});
-
-export const HUB_TEMPLATE = buildIslet(0.7, 17, false);
-export const HUB_ISLET_R = 14.6; // bord du dallage du hub, départ des ponts
-
-// Stèles des shells, entre les départs de ponts.
-export const STELE_SLOTS: Vec3[] = Array.from({ length: 8 }, (_, i) => {
-  const a = (i / 8) * Math.PI * 2 + Math.PI / 16;
-  return [Math.cos(a) * 12.4, HUB_TEMPLATE.top, Math.sin(a) * 12.4];
-});
-
-// Lanternes des sessions Claude Code, flottant au-dessus du temple.
-export const SESSION_SLOTS: Vec3[] = Array.from({ length: 8 }, (_, i) => {
-  const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
-  return [Math.cos(a) * 20, 16 + (i % 2) * 3, Math.sin(a) * 20];
-});
+export const HUB_TEMPLATE = buildIslet(0.7, HUB_RADIUS, false);

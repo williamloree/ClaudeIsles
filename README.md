@@ -2,7 +2,7 @@
 
 <h1 align="center">Claude Isles</h1>
 
-<p align="center">Ce que fait Claude Code sur ta machine, en 3D, dans les Enfers grecs : une flamme éternelle, le fleuve Styx, et un îlot pour chaque agent.</p>
+<p align="center">Ce que fait Claude Code sur ta machine, en 3D : Claude au centre, et un îlot pour chaque agent. Dans les Enfers grecs, ou dans cinq autres univers.</p>
 
 <p align="center">
   <img alt="Three.js" src="https://img.shields.io/badge/three.js-r187-black?logo=three.js">
@@ -43,9 +43,13 @@ Il faut Node.js et Claude Code (`claude`) installés et connectés.
 
 Les 16 îlots sont prédéfinis (géométrie calculée une fois au chargement, graine fixe) : un agent prend simplement un emplacement libre, l'anneau intérieur d'abord. Pas d'agent, pas d'îlot.
 
-## Maquettes
+## Thèmes
 
-Le dossier `maquettes/` contient des scènes autonomes, avec des données de démonstration, qui s'ouvrent par double-clic sans rien installer. Elles servent à essayer d'autres univers avant de les porter dans l'appli.
+Six univers, au choix dans le menu en haut à droite. Le choix est mémorisé ; on peut aussi l'imposer dans l'adresse : `?theme=neon`. Pas besoin de recompiler : chaque thème est chargé à la demande.
+
+Le tableau ci-dessus décrit Styx ; les autres thèmes racontent la même chose avec leurs propres objets (méduses, androïdes, moines, explorateurs…). Les couleurs de statut ne changent pas : bleu en cours, or terminé, rouge échec.
+
+Chaque thème a aussi sa maquette autonome dans `maquettes/`, avec des données de démonstration, qui s'ouvre par double-clic sans rien installer.
 
 | | | |
 |---|---|---|
@@ -70,12 +74,21 @@ Le dossier `maquettes/` contient des scènes autonomes, avec des données de dé
 | `server/watcher.mjs` | Lit en continu les journaux de Claude Code : `~/.claude/projects/<projet>/<session>.jsonl` (appels d'outils, notifications de fin), `…/<session>/subagents/agent-*.jsonl` (activité des agents) et `%TEMP%\claude\<projet>\<session>\tasks\<id>.output` (sortie des shells). |
 | `server/runner.mjs` | Lance `claude -p --output-format stream-json` pour le chat du hub et les tâches. |
 | `server/index.mjs` | Serveur local (127.0.0.1:4317) : flux SSE `/api/events`, API du hub et des tâches, sert `dist/`. |
-| `src/scene/` | Scène three.js (React Three Fiber) : `Hub`, `Islet`, `Office` (esprit et tablette), `Ghost`, `River` (eau, barques, Charon, bougies), `Cave`, `Bridges`, `ShellStele`, `SessionSat` (lanternes), `materials` (textures procédurales, shader des fantômes). |
+| `src/scene/` | Partie commune à tous les thèmes : emplacements fixes (`slots`), répartition des agents, shells et sessions (`layout`), trajectoires des barques (`boats`), étiquettes et clics (`labels`), caméra (`World`). |
+| `src/themes/` | Un dossier par thème (scène React Three Fiber) et le registre `index.ts`. `styx/` sert de référence. |
 | `src/ui/` | Terminal, formulaire de tâche, liste, panneau de détail. |
 
 - Le chat du hub reprend la même session d'un message à l'autre (`--resume`).
-- Les sessions des dernières 24 h sont relues au démarrage. Un agent ou un shell terminé reste sur son îlot 45 min, puis l'agent part en barque (24 barques au plus). Sans signe de vie depuis 1 h 30, il est « perdu » (âme grise).
+- Les sessions des dernières 24 h sont relues au démarrage. Un agent ou un shell terminé reste sur son îlot 45 min, puis l'agent part en barque (20 barques au plus). Sans signe de vie depuis 1 h 30, il est « perdu » (âme grise).
 - `data/` (local, ignoré par git) garde la conversation du hub et les tâches des dernières 24 h.
+- `?demo` dans l'adresse affiche des données fictives, sans serveur : pratique pour essayer un thème ou faire une capture.
+
+## Créer un thème
+
+1. Copier `src/themes/styx/` dans `src/themes/<id>/` et l'ajouter au registre `src/themes/index.ts`.
+2. Dans `index.ts`, donner un nom, les mots de l'univers (`words` : ce qu'on dit d'un agent, d'une barque…) et, si besoin, la caméra de départ et les couleurs de l'interface (`cssVars`).
+3. Redessiner la scène (`Scene.tsx`) en gardant les positions de `src/scene/slots.ts` et les étiquettes de `src/scene/labels.tsx` : le reste (données, caméra, sélection, panneaux) suit tout seul.
+4. Vérifier avec `npm run dev` puis <http://localhost:5181/?demo&theme=<id>>.
 
 ## Sécurité
 

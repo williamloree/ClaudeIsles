@@ -2,53 +2,15 @@
 // Charon qui fait sa ronde, et les barques des âmes des anciens agents, chacune suivie de son sillage.
 import { useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { Water } from 'three/examples/jsm/objects/Water.js';
-import { COLORS, STATUS_COLOR, STATUS_LABEL, ago, cut } from '../format';
-import { useStore } from '../store';
-import type { Status } from '../types';
+import { COLORS, STATUS_COLOR } from '../../format';
+import { laneFor, laneIndex, lanePoint, setLivePosition, type Boat, type Lane } from '../../scene/boats';
+import { BoatLabel, selectKey } from '../../scene/labels';
+import { useStore } from '../../store';
 import { Fire } from './Fire';
 import { Ghost } from './Ghost';
-import { labelLayer } from './labels';
 import { MAT, flameTex, rippleTex, rng, softTex, waterNormals } from './materials';
-
-/** Position courante des barques (elles bougent) : la caméra s'en sert pour y voler. */
-export const livePositions = new Map<string, THREE.Vector3>();
-
-export interface Boat {
-  key: string; // `agent:<id>` ou `task:<id>`, ou `ambient:<n>` (barque sans âme connue)
-  title: string;
-  status: Status;
-  endedAt: number | null;
-  subtitle: string;
-}
-
-// ---------- Trajectoires ----------
-interface Lane {
-  r: number;
-  w: number;
-  phase: number;
-  wobble: number;
-}
-/** Voie stable d'une barque : dépend de son identifiant, pas de sa place dans la liste. */
-function laneIndex(key: string) {
-  let h = 0;
-  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) | 0;
-  return Math.abs(h) % 997;
-}
-
-function laneFor(i: number): Lane {
-  const r = rng(1000 + i * 77);
-  const dir = i % 3 === 1 ? -1 : 1;
-  // au-delà de l'anneau extérieur d'îlots (56 + 9,5) ; vitesse lente de promenade
-  return { r: 68 + (i % 4) * 4.5 + r() * 2, w: dir * (0.012 + r() * 0.01), phase: i * 2.399, wobble: 1.5 + r() * 2 };
-}
-function lanePoint(l: Lane, t: number, out = new THREE.Vector3()) {
-  const a = l.phase + t * l.w;
-  const r = l.r + Math.sin(t * 0.07 + l.phase) * l.wobble;
-  return out.set(Math.cos(a) * r, 0, Math.sin(a) * r);
-}
 
 // ---------- Eau ----------
 function StyxWater() {
@@ -262,15 +224,9 @@ function SpiritBoat({ boat, index, selected }: { boat: Boat; index: number; sele
       const k2 = Math.sin(age * Math.PI);
       d.scale.set(0.12 * k2, 0.3 * k2, 1);
     });
-    let live = livePositions.get(boat.key);
-    if (!live) livePositions.set(boat.key, (live = new THREE.Vector3()));
-    live.set(a.x, HOVER + 1, a.z);
+    setLivePosition(boat.key, a.x, HOVER + 1, a.z);
   });
-  const select = () => {
-    if (boat.key.startsWith('ambient:')) return;
-    const [kind, ...rest] = boat.key.split(':');
-    useStore.getState().select({ kind: kind as 'agent' | 'task', id: rest.join(':') });
-  };
+  const select = () => selectKey(boat.key);
   return (
     <>
       <group
@@ -303,20 +259,7 @@ function SpiritBoat({ boat, index, selected }: { boat: Boat; index: number; sele
         <group position={[0, 1.05, 0.4]}>
           <Ghost color={color} pose="sit" scale={0.75} seed={index} />
         </group>
-        {(hover || selected) && (
-          <Html position={[0, 3.6, 0]} center zIndexRange={[40, 0]} portal={labelLayer}>
-            <div className={`isle-label boat ${selected ? 'selected' : ''}`} style={{ ['--c' as string]: color }} onClick={select}>
-              <div className="isle-badge">
-                ÂME EN BARQUE <span>{STATUS_LABEL[boat.status]}</span>
-              </div>
-              <div className="isle-title">{cut(boat.title, 40)}</div>
-              <div className="isle-sub">
-                {boat.subtitle}
-                {boat.endedAt ? ` · ${ago(boat.endedAt)}` : ''}
-              </div>
-            </div>
-          </Html>
-        )}
+        {(hover || selected) && <BoatLabel boat={boat} selected={selected} position={[0, 3.6, 0]} />}
       </group>
       {/* sous la barque, au ras de l'eau : halo, coussin de brume et gouttes de lumière */}
       <group ref={below}>

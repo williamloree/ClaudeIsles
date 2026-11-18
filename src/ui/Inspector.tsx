@@ -27,6 +27,7 @@ export function Inspector() {
   const selection = useStore((s) => s.selection);
   const snapshot = useStore((s) => s.snapshot);
   const tasks = useStore((s) => s.tasks);
+  const words = useStore((s) => s.theme?.words);
   const pre = useRef<HTMLPreElement>(null);
   const shell = selection?.kind === 'shell' ? snapshot.shells.find((x) => x.id === selection.id) : undefined;
 
@@ -44,7 +45,7 @@ export function Inspector() {
     const s = sessionOf(a.sessionId);
     return (
       <section className="inspector panel">
-        <Head kind={`${live ? 'ÂME' : 'ÂME EN BARQUE'} · ${a.agentType}`} title={a.description} status={a.status} since={a.startedAt} until={a.endedAt} />
+        <Head kind={`${live ? words?.agent : words?.boat} · ${a.agentType}`} title={a.description} status={a.status} since={a.startedAt} until={a.endedAt} />
         <dl>
           <dt>Session</dt>
           <dd>{s ? `${s.project} — ${s.title || ''}` : a.sessionId}</dd>

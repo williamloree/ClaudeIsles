@@ -2,6 +2,8 @@
 import * as THREE from 'three';
 import { ImprovedNoise } from 'three/examples/jsm/math/ImprovedNoise.js';
 
+export { rng } from '../../scene/boats';
+
 const noise = new ImprovedNoise();
 export const fbm = (x: number, y: number, z: number, oct = 4) => {
   let a = 0.5;
@@ -14,18 +16,6 @@ export const fbm = (x: number, y: number, z: number, oct = 4) => {
   }
   return s;
 };
-
-/** Générateur pseudo-aléatoire à graine : les décors sont identiques d'un chargement à l'autre. */
-export function rng(seed: number) {
-  let s = seed >>> 0;
-  return () => {
-    s = (s + 0x6d2b79f5) >>> 0;
-    let t = s;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 // bruit périodique : la texture se répète sans couture
 const pnoise = (u: number, v: number, s: number, o = 4) =>

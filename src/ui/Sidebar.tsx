@@ -9,6 +9,7 @@ export function Sidebar({ layout }: { layout: Layout }) {
   const selection = useStore((s) => s.selection);
   const tasks = useStore((s) => s.tasks);
   const snapshot = useStore((s) => s.snapshot);
+  const words = useStore((s) => s.theme?.words);
   const key = selectionKey(selection);
 
   const Item = ({ k, color, title, sub, onClick }: { k: string; color: string; title: string; sub: string; onClick: () => void }) => (
@@ -50,10 +51,10 @@ export function Sidebar({ layout }: { layout: Layout }) {
       {tasks.map((t) => (
         <Item key={t.id} k={`task:${t.id}`} color={STATUS_COLOR[t.status]} title={cut(t.title, 34)} sub={`${t.model} · ${duration(t.startedAt, t.endedAt ?? undefined)}`} onClick={() => select({ kind: 'task', id: t.id })} />
       ))}
-      {layout.overflow > 0 && <p className="empty">+{layout.overflow} sans îlot libre</p>}
+      {layout.overflow > 0 && <p className="empty">+{layout.overflow} {words?.noSlot}</p>}
 
-      <h3>Barques</h3>
-      {snapshot.history.length === 0 && <p className="empty">Aucune âme sur le fleuve</p>}
+      <h3>{words?.boats}</h3>
+      {snapshot.history.length === 0 && <p className="empty">{words?.noBoats}</p>}
       {snapshot.history.map((a) => (
         <Item key={a.id} k={`agent:${a.id}`} color={STATUS_COLOR[a.status]} title={cut(a.description, 34)} sub={`${a.agentType} · ${project(a.sessionId) || 'session close'}${a.endedAt ? ` · ${ago(a.endedAt)}` : ''}`} onClick={() => select({ kind: 'agent', id: a.id })} />
       ))}

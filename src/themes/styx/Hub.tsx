@@ -1,14 +1,13 @@
 // Le hub : un tholos (temple rond) sur le grand îlot ; Claude est la flamme éternelle de l'autel.
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
 import * as THREE from 'three';
-import { COLORS } from '../format';
-import { useStore } from '../store';
+import { COLORS } from '../../format';
+import { HubLabel, clickable, openHub } from '../../scene/labels';
+import { useStore } from '../../store';
 import { Brazier, Fire } from './Fire';
 import { HUB_TEMPLATE } from './islands';
 import { Column, Islet } from './Islet';
-import { labelLayer } from './labels';
 import { MAT } from './materials';
 
 const T = HUB_TEMPLATE.top;
@@ -16,11 +15,6 @@ const TT = T + 1.05; // sol du temple, au-dessus des trois marches
 
 export function Hub() {
   const busy = useStore((s) => s.hub.busy);
-  const connected = useStore((s) => s.connected);
-  const select = useStore((s) => s.select);
-  const setTerminal = useStore((s) => s.setTerminal);
-  // L'étiquette (DOM) passerait par-dessus l'élément qu'on regarde de près.
-  const focusElsewhere = useStore((s) => !!s.selection && s.selection.kind !== 'hub');
   const core = useRef<THREE.Mesh>(null);
   const coreMat = useRef<THREE.MeshStandardMaterial>(null);
 
@@ -33,13 +27,8 @@ export function Hub() {
     if (coreMat.current) coreMat.current.emissiveIntensity = busy ? 5 + Math.sin(t * 9) * 1.5 : 4;
   });
 
-  const open = () => {
-    select({ kind: 'hub', id: 'hub' });
-    setTerminal(true);
-  };
-
   return (
-    <Islet template={HUB_TEMPLATE} position={[0, 0, 0]} onClick={open}>
+    <Islet template={HUB_TEMPLATE} position={[0, 0, 0]} onClick={openHub}>
       {[0, 1, 2].map((k) => (
         <mesh key={k} position={[0, T + 0.17 + k * 0.35, 0]} material={MAT.marble} castShadow receiveShadow>
           <cylinderGeometry args={[8.4 - k * 0.6, 8.6 - k * 0.6, 0.35, 64]} />
@@ -60,17 +49,7 @@ export function Hub() {
         <coneGeometry args={[7.8, 3, 64]} />
       </mesh>
 
-      <group
-        onClick={(e) => {
-          e.stopPropagation();
-          open();
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          document.body.style.cursor = 'pointer';
-        }}
-        onPointerOut={() => (document.body.style.cursor = '')}
-      >
+      <group {...clickable(openHub)}>
         <mesh position={[0, TT + 0.7, 0]} material={MAT.marble} castShadow receiveShadow>
           <cylinderGeometry args={[1.2, 1.5, 1.4, 24]} />
         </mesh>
@@ -92,14 +71,7 @@ export function Hub() {
         );
       })}
 
-      {!focusElsewhere && (
-        <Html position={[0, TT + 12.5, 0]} center zIndexRange={[40, 0]} portal={labelLayer}>
-          <div className={`hub-label ${busy ? 'busy' : ''}`} onClick={open}>
-            <div className="hub-name">CLAUDE</div>
-            <div className="hub-state">{!connected ? 'le serveur s’est tu' : busy ? 'la flamme réfléchit…' : 'la flamme éternelle t’écoute'}</div>
-          </div>
-        </Html>
-      )}
+      <HubLabel position={[0, TT + 12.5, 0]} />
     </Islet>
   );
 }

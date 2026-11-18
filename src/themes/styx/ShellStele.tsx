@@ -1,16 +1,14 @@
 // Un shell en arrière-plan = une stèle gravée sur le parvis du temple. La commande et la fin
 // de sa sortie y luisent comme des braises, en direct ; le clic ouvre la sortie complète.
 import { useEffect, useMemo } from 'react';
-import { Html } from '@react-three/drei';
 import * as THREE from 'three';
-import { STATUS_COLOR, STATUS_LABEL, cut, duration } from '../format';
-import type { Shell } from '../types';
+import { STATUS_COLOR, STATUS_LABEL, cut, duration } from '../../format';
+import { ShellLabel, clickable, tailLines } from '../../scene/labels';
+import type { Vec3 } from '../../scene/slots';
+import { useStore } from '../../store';
+import type { Shell } from '../../types';
 import { Fire } from './Fire';
-import type { Vec3 } from './islands';
-import { labelLayer } from './labels';
 import { MAT } from './materials';
-
-const COLS = 34;
 
 function drawStele(ctx: CanvasRenderingContext2D, sh: Shell) {
   const running = sh.status === 'running';
@@ -30,20 +28,14 @@ function drawStele(ctx: CanvasRenderingContext2D, sh: Shell) {
   ctx.fillText(`${STATUS_LABEL[sh.status]} · ${duration(sh.startedAt, sh.endedAt ?? undefined)}`, 256, 146);
   ctx.textAlign = 'left';
   ctx.font = "19px 'JetBrains Mono', Consolas, monospace";
-  const lines = sh.tail
-    .replace(/\s+$/, '')
-    .split('\n')
-    .slice(-30)
-    .flatMap((l) => (l ? l.match(new RegExp(`.{1,${COLS}}`, 'g'))! : ['']))
-    .slice(-16);
-  if (!lines.length) lines.push('…');
+  const lines = tailLines(sh, 34, 16);
   lines.forEach((l, i) => {
     ctx.fillStyle = i === lines.length - 1 && running ? '#ffe2b0' : running ? '#e09a52' : '#8f8068';
     ctx.fillText(l, 40, 196 + i * 34);
   });
 }
 
-export function ShellStele({ shell, pos, selected, onClick }: { shell: Shell; pos: Vec3; selected: boolean; onClick: () => void }) {
+export function ShellStele({ shell, pos, selected }: { shell: Shell; pos: Vec3; selected: boolean }) {
   const running = shell.status === 'running';
   const color = STATUS_COLOR[shell.status];
   const canvas = useMemo(() => Object.assign(document.createElement('canvas'), { width: 512, height: 768 }), []);
@@ -63,22 +55,9 @@ export function ShellStele({ shell, pos, selected, onClick }: { shell: Shell; po
 
   // la stèle tourne le dos au temple et fait face au fleuve
   const yaw = Math.atan2(pos[0], pos[2]);
-  const lastLine = shell.tail.replace(/\s+$/, '').split('\n').at(-1) || '…';
 
   return (
-    <group
-      position={pos}
-      rotation-y={yaw}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
-      onPointerOver={(e) => {
-        e.stopPropagation();
-        document.body.style.cursor = 'pointer';
-      }}
-      onPointerOut={() => (document.body.style.cursor = '')}
-    >
+    <group position={pos} rotation-y={yaw} {...clickable(() => useStore.getState().select({ kind: 'shell', id: shell.id }))}>
       <mesh position={[0, 2, 0]} material={MAT.stone} castShadow receiveShadow>
         <boxGeometry args={[2.7, 4, 0.45]} />
       </mesh>
@@ -104,16 +83,7 @@ export function ShellStele({ shell, pos, selected, onClick }: { shell: Shell; po
           <meshBasicMaterial color={color} transparent opacity={0.18} toneMapped={false} />
         </mesh>
       )}
-      {(running || selected) && (
-        <Html position={[0, 5.6, 0]} center zIndexRange={[40, 0]} portal={labelLayer}>
-          <div className={`pipe-label ${selected ? 'selected' : ''}`} style={{ ['--c' as string]: color }} onClick={onClick}>
-            <div className="pipe-cmd">
-              <span className="pill">{STATUS_LABEL[shell.status]}</span> {cut(shell.description || shell.command, 32)}
-            </div>
-            {running && <div className="pipe-out">{cut(lastLine, 42)}</div>}
-          </div>
-        </Html>
-      )}
+      <ShellLabel shell={shell} selected={selected} position={[0, 5.6, 0]} />
     </group>
   );
 }

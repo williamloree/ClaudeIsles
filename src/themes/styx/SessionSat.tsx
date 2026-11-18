@@ -2,16 +2,16 @@
 // Sa flamme s'avive quand la session travaille.
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
 import * as THREE from 'three';
-import { COLORS, ago, cut } from '../format';
-import type { Session } from '../types';
+import { COLORS } from '../../format';
+import { SessionLabel, clickable } from '../../scene/labels';
+import type { Vec3 } from '../../scene/slots';
+import { useStore } from '../../store';
+import type { Session } from '../../types';
 import { Fire } from './Fire';
-import type { Vec3 } from './islands';
-import { labelLayer } from './labels';
 import { MAT } from './materials';
 
-export function SessionSat({ session, pos, selected, onClick }: { session: Session; pos: Vec3; selected: boolean; onClick: () => void }) {
+export function SessionSat({ session, pos, selected }: { session: Session; pos: Vec3; selected: boolean }) {
   const ref = useRef<THREE.Group>(null);
   const live = Date.now() - session.lastActivity < 30e3;
   useFrame(({ clock }) => {
@@ -23,17 +23,7 @@ export function SessionSat({ session, pos, selected, onClick }: { session: Sessi
   });
   return (
     <group ref={ref} position={pos}>
-      <group
-        onClick={(e) => {
-          e.stopPropagation();
-          onClick();
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          document.body.style.cursor = 'pointer';
-        }}
-        onPointerOut={() => (document.body.style.cursor = '')}
-      >
+      <group {...clickable(() => useStore.getState().select({ kind: 'session', id: session.id }))}>
         {/* cage de bronze */}
         <mesh position={[0, 1.1, 0]} material={MAT.bronze}>
           <coneGeometry args={[0.7, 0.5, 6]} />
@@ -56,13 +46,7 @@ export function SessionSat({ session, pos, selected, onClick }: { session: Sessi
           <Fire color={session.active ? COLORS.lantern : COLORS.ash} scale={live ? 1 : 0.6} />
         </group>
       </group>
-      <Html position={[0, 2.6, 0]} center zIndexRange={[40, 0]} portal={labelLayer}>
-        <div className={`sat-label ${selected ? 'selected' : ''} ${session.active ? 'active' : ''}`} onClick={onClick}>
-          <div className="sat-project">{session.project}</div>
-          <div className="sat-title">{cut(session.title || session.lastPrompt || 'session', 34)}</div>
-          {(live || selected) && <div className="sat-tool">{live && session.lastTool ? cut(session.lastTool, 40) : ago(session.lastActivity)}</div>}
-        </div>
-      </Html>
+      <SessionLabel session={session} selected={selected} position={[0, 2.6, 0]} />
     </group>
   );
 }
