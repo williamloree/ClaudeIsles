@@ -50,7 +50,7 @@ Le dossier `maquettes/` contient des scènes autonomes, avec des données de dé
 | | | |
 |---|---|---|
 | ![Maquette Styx](assets/screenshots/styx.png) <br> **Styx** · `styx.html` <br> Les Enfers grecs, base de l'appli. | ![Maquette réaliste](assets/screenshots/realiste.png) <br> **Réaliste** · `realiste.html` <br> Îles flottantes au-dessus des nuages, ponts de cordes. | ![Maquette Néon](assets/screenshots/neon.png) <br> **Néon** · `neon.html` <br> Une ville cyberpunk sous la pluie, Claude en noyau holographique. |
-| ![Maquette Abysses](assets/screenshots/abysses.png) <br> **Abysses** · `abysses.html` <br> Une cité engloutie, Claude en cœur bioluminescent. | ![Maquette Jardin zen](assets/screenshots/zen.png) <br> **Jardin zen** · `zen.html` <br> Un étang au clair de lune, ponts rouges et lanternes. | |
+| ![Maquette Abysses](assets/screenshots/abysses.png) <br> **Abysses** · `abysses.html` <br> Une cité engloutie, Claude en cœur bioluminescent. | ![Maquette Jardin zen](assets/screenshots/zen.png) <br> **Jardin zen** · `zen.html` <br> Un étang au clair de lune, ponts rouges et lanternes. | ![Maquette Banquise](assets/screenshots/banquise.png) <br> **Banquise** · `banquise.html` <br> Nuit polaire sous l'aurore, Claude en phare de glace. |
 
 ## Raccourcis
 
